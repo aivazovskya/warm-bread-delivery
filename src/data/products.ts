@@ -249,3 +249,20 @@ export const promotions = [
     image: 'https://images.unsplash.com/photo-1534723452862-4c874018d66d?w=800',
   },
 ];
+
+// Store configuration
+export const storeConfig = {
+  name: 'Ыстық нан',
+  address: 'Астана, Ақмола 58',
+  phone: '+7 777 123 45 67',
+  email: 'info@ystyqnan.kz',
+  workingHours: '8:00 - 22:00',
+  deliveryRadius: 10, // km
+  minOrderAmount: 2000,
+  freeDeliveryFrom: 5000,
+  deliveryFee: 500,
+  coordinates: {
+    lat: 51.1605,
+    lng: 71.4704,
+  },
+};

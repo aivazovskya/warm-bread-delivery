@@ -1,6 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Clock, Truck } from 'lucide-react';
+import { storeConfig } from '@/data/products';
 import heroBread from '@/assets/hero-bread.jpg';
+import { Link } from 'react-router-dom';
 
 interface HeroSectionProps {
   onOrderClick: () => void;
@@ -25,17 +27,21 @@ export const HeroSection = ({ onOrderClick }: HeroSectionProps) => {
             </h1>
             
             <p className="text-lg text-muted-foreground max-w-md mx-auto lg:mx-0">
-              Свежий хлеб, молочные продукты и всё необходимое — с бесплатной доставкой от 5000₸
+              Свежий хлеб, молочные продукты и всё необходимое — с бесплатной доставкой от {storeConfig.freeDeliveryFrom.toLocaleString()}₸
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Button variant="hero" size="xl" onClick={onOrderClick}>
-                Заказать сейчас
-                <ArrowRight className="h-5 w-5" />
-              </Button>
-              <Button variant="outline" size="xl">
-                Смотреть каталог
-              </Button>
+              <Link to="/catalog">
+                <Button variant="hero" size="xl" onClick={onOrderClick}>
+                  Заказать сейчас
+                  <ArrowRight className="h-5 w-5" />
+                </Button>
+              </Link>
+              <Link to="/catalog">
+                <Button variant="outline" size="xl">
+                  Смотреть каталог
+                </Button>
+              </Link>
             </div>
 
             {/* Features */}

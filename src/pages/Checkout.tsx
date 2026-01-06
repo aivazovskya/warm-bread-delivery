@@ -3,7 +3,9 @@ import { Header } from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Map2GIS } from '@/components/Map2GIS';
 import { useCart } from '@/context/CartContext';
+import { storeConfig } from '@/data/products';
 import { 
   ArrowLeft, 
   Truck, 
@@ -28,12 +30,13 @@ const Checkout = () => {
   const [deliveryType, setDeliveryType] = useState<DeliveryType>('delivery');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('kaspi-pay');
   const [address, setAddress] = useState('');
+  const [isInDeliveryZone, setIsInDeliveryZone] = useState(true);
   const [phone, setPhone] = useState('');
   const [comment, setComment] = useState('');
   const [timeSlot, setTimeSlot] = useState('asap');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const deliveryFee = deliveryType === 'pickup' ? 0 : (total >= 5000 ? 0 : 500);
+  const deliveryFee = deliveryType === 'pickup' ? 0 : (total >= storeConfig.freeDeliveryFrom ? 0 : storeConfig.deliveryFee);
   const grandTotal = total + deliveryFee;
 
   const timeSlots = [
@@ -44,10 +47,21 @@ const Checkout = () => {
     { id: '18-20', label: '18:00 - 20:00', desc: 'Сегодня' },
   ];
 
+  const handleAddressSelect = (selectedAddress: string, inZone: boolean) => {
+    setAddress(selectedAddress);
+    setIsInDeliveryZone(inZone);
+  };
+
   const handleSubmit = async () => {
-    if (deliveryType === 'delivery' && !address.trim()) {
-      toast.error('Укажите адрес доставки');
-      return;
+    if (deliveryType === 'delivery') {
+      if (!address.trim()) {
+        toast.error('Укажите адрес доставки');
+        return;
+      }
+      if (!isInDeliveryZone) {
+        toast.error('Адрес находится вне зоны доставки');
+        return;
+      }
     }
     if (!phone.trim()) {
       toast.error('Укажите номер телефона');
@@ -71,7 +85,7 @@ const Checkout = () => {
         <div className="container py-12 text-center">
           <h1 className="text-2xl font-bold mb-4">Корзина пуста</h1>
           <p className="text-muted-foreground mb-6">Добавьте товары для оформления заказа</p>
-          <Link to="/">
+          <Link to="/catalog">
             <Button variant="hero">Перейти к покупкам</Button>
           </Link>
         </div>
@@ -80,7 +94,7 @@ const Checkout = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20 md:pb-0">
       <Header onCartClick={() => {}} />
       
       <main className="container py-6 md:py-10">
@@ -114,7 +128,7 @@ const Checkout = () => {
                     <span className="font-semibold">Доставка</span>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {total >= 5000 ? 'Бесплатно' : '500₸'}
+                    {total >= storeConfig.freeDeliveryFrom ? 'Бесплатно' : `${storeConfig.deliveryFee}₸`}
                   </p>
                 </button>
                 <button
@@ -134,7 +148,7 @@ const Checkout = () => {
               </div>
             </div>
 
-            {/* Address / Pickup Point */}
+            {/* Address / Pickup Point with 2GIS Map */}
             <div className="bg-card rounded-2xl p-6 border border-border/50">
               <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
                 <MapPin className="h-5 w-5 text-primary" />
@@ -142,22 +156,21 @@ const Checkout = () => {
               </h2>
               
               {deliveryType === 'delivery' ? (
-                <div className="space-y-4">
-                  <input
-                    type="text"
-                    placeholder="Улица, дом, квартира"
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    className="w-full h-12 px-4 rounded-xl border border-border bg-secondary/30 focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Зона доставки: Алматы, в радиусе 10 км от магазина
-                  </p>
-                </div>
+                <Map2GIS 
+                  onAddressSelect={handleAddressSelect}
+                  selectedAddress={address}
+                />
               ) : (
                 <div className="p-4 rounded-xl bg-secondary/30 border border-border">
-                  <p className="font-semibold">ул. Абая 150</p>
-                  <p className="text-sm text-muted-foreground">Время работы: 8:00 - 22:00</p>
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Store className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">{storeConfig.address}</p>
+                      <p className="text-sm text-muted-foreground">Время работы: {storeConfig.workingHours}</p>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -308,7 +321,7 @@ const Checkout = () => {
                 size="xl"
                 className="w-full"
                 onClick={handleSubmit}
-                disabled={isSubmitting}
+                disabled={isSubmitting || (deliveryType === 'delivery' && !isInDeliveryZone)}
               >
                 {isSubmitting ? (
                   <span className="flex items-center gap-2">

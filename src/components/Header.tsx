@@ -1,7 +1,8 @@
-import { ShoppingCart, Menu, Search, MapPin, X } from 'lucide-react';
+import { ShoppingCart, Menu, Search, MapPin, X, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useCart } from '@/context/CartContext';
+import { storeConfig } from '@/data/products';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -14,34 +15,55 @@ export const Header = ({ onCartClick, onSearchChange }: HeaderProps) => {
   const { itemCount, total } = useCart();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleSearch = (value: string) => {
     setSearchQuery(value);
     onSearchChange?.(value);
   };
 
+  const navLinks = [
+    { href: '/', label: 'Главная' },
+    { href: '/catalog', label: 'Каталог' },
+    { href: '/promotions', label: 'Акции' },
+    { href: '/contacts', label: 'Контакты' },
+  ];
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="container flex h-16 items-center justify-between gap-4">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-hero shadow-md">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent shadow-md">
             <span className="text-xl">🍞</span>
           </div>
           <div className="hidden sm:block">
-            <h1 className="text-lg font-bold leading-tight text-foreground">Ыстық нан</h1>
+            <h1 className="text-lg font-bold leading-tight text-foreground">{storeConfig.name}</h1>
             <p className="text-xs text-muted-foreground">Доставка продуктов</p>
           </div>
         </Link>
 
+        {/* Desktop Navigation */}
+        <nav className="hidden lg:flex items-center gap-6">
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              to={link.href}
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+
         {/* Location */}
-        <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground cursor-pointer transition-colors">
+        <Link to="/contacts" className="hidden md:flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground cursor-pointer transition-colors">
           <MapPin className="h-4 w-4 text-primary" />
-          <span>Алматы, ул. Абая 150</span>
-        </div>
+          <span className="max-w-[150px] truncate">{storeConfig.address}</span>
+        </Link>
 
         {/* Search */}
-        <div className="flex-1 max-w-md mx-4">
+        <div className="flex-1 max-w-md mx-4 hidden sm:block">
           {searchOpen ? (
             <div className="relative flex items-center">
               <Search className="absolute left-3 h-4 w-4 text-muted-foreground" />
@@ -66,37 +88,75 @@ export const Header = ({ onCartClick, onSearchChange }: HeaderProps) => {
           ) : (
             <button
               onClick={() => setSearchOpen(true)}
-              className="flex items-center gap-2 h-10 px-4 rounded-full bg-secondary/50 text-muted-foreground hover:bg-secondary transition-colors w-full md:w-auto"
+              className="flex items-center gap-2 h-10 px-4 rounded-full bg-secondary/50 text-muted-foreground hover:bg-secondary transition-colors w-full"
             >
               <Search className="h-4 w-4" />
-              <span className="hidden md:inline text-sm">Поиск товаров...</span>
+              <span className="text-sm">Поиск товаров...</span>
             </button>
           )}
         </div>
 
-        {/* Cart Button */}
-        <Button
-          variant="cart"
-          size="lg"
-          className="gap-3 pl-4 pr-5"
-          onClick={onCartClick}
-        >
-          <div className="relative">
-            <ShoppingCart className="h-5 w-5" />
-            {itemCount > 0 && (
-              <Badge
-                variant="sale"
-                className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-[10px]"
-              >
-                {itemCount}
-              </Badge>
-            )}
-          </div>
-          <span className="hidden sm:inline font-bold">
-            {total > 0 ? `${total.toLocaleString()}₸` : 'Корзина'}
-          </span>
-        </Button>
+        {/* Right Actions */}
+        <div className="flex items-center gap-2">
+          {/* Profile - Desktop */}
+          <Link to="/profile" className="hidden md:flex">
+            <Button variant="ghost" size="icon">
+              <User className="h-5 w-5" />
+            </Button>
+          </Link>
+
+          {/* Cart Button */}
+          <Button
+            variant="cart"
+            size="lg"
+            className="gap-3 pl-4 pr-5"
+            onClick={onCartClick}
+          >
+            <div className="relative">
+              <ShoppingCart className="h-5 w-5" />
+              {itemCount > 0 && (
+                <Badge
+                  variant="sale"
+                  className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-[10px]"
+                >
+                  {itemCount}
+                </Badge>
+              )}
+            </div>
+            <span className="hidden sm:inline font-bold">
+              {total > 0 ? `${total.toLocaleString()}₸` : 'Корзина'}
+            </span>
+          </Button>
+
+          {/* Mobile Menu Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+        </div>
       </div>
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className="lg:hidden border-t border-border bg-background animate-slide-in-bottom">
+          <nav className="container py-4 space-y-2">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                to={link.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-4 py-3 rounded-lg text-sm font-medium hover:bg-secondary transition-colors"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
+      )}
     </header>
   );
 };
